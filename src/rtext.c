@@ -661,7 +661,7 @@ GlyphInfo *LoadFontData(const unsigned char *fileData, int dataSize, float fontS
                     if (ch == 32)
                     {
                         stbtt_GetCodepointHMetrics(&fontInfo, ch, &chars[i].advanceX, NULL);
-                        chars[i].advanceX = (int)((float)chars[i].advanceX*scaleFactor);
+                        chars[i].advanceX = (int)(roundf(chars[i].advanceX*scaleFactor));
 
                         Image imSpace = {
                             .data = RL_CALLOC(chars[i].advanceX*fontSize, 2),
