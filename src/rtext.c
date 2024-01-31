@@ -641,8 +641,12 @@ GlyphInfo *LoadFontData(const unsigned char *fileData, int dataSize, float fontS
 
                     if (chars[i].image.data != NULL)    // Glyph data has been found in the font
                     {
-                        stbtt_GetCodepointHMetrics(&fontInfo, ch, &chars[i].advanceX, NULL);
-                        chars[i].advanceX = (int)((float)chars[i].advanceX*scaleFactor);
+                        int advance;
+                        stbtt_GetCodepointHMetrics(&fontInfo, ch, &advance, NULL);
+                        chars[i].advanceX = (int)(roundf(advance * scaleFactor));
+
+                        chars[i].offsetX = (int)(roundf(chars[i].offsetX * scaleFactor));
+                        chars[i].offsetY = (int)(roundf(chars[i].offsetY + ascent));
 
                         // Load characters images
                         chars[i].image.width = chw;
