@@ -645,7 +645,7 @@ GlyphInfo *LoadFontData(const unsigned char *fileData, int dataSize, float fontS
                         chars[i].advanceX = (int)(roundf(chars[i].advanceX * scaleFactor));
 
                         chars[i].offsetX = (int)(roundf(chars[i].offsetX * scaleFactor));
-                        chars[i].offsetY = (int)(roundf(chars[i].offsetY + ascent) * scaleFactor);
+                        chars[i].offsetY = (int)(roundf((chars[i].offsetY + ascent) * scaleFactor));
 
                         // Load characters images
                         chars[i].image.width = chw;
