@@ -653,7 +653,7 @@ GlyphInfo *LoadFontData(const unsigned char *fileData, int dataSize, float fontS
                         chars[i].image.mipmaps = 1;
                         chars[i].image.format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE;
 
-                        chars[i].offsetY += (int)((float)ascent*scaleFactor);
+                        // chars[i].offsetY += (int)((float)ascent*scaleFactor);
                     }
 
                     // NOTE: We create an empty image for space character,
