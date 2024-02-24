@@ -5290,9 +5290,28 @@ static Model LoadGLTF(const char *fileName)
                         else if ((attribute->component_type == cgltf_component_type_r_16u) && (attribute->type == cgltf_type_vec4))
                         {
                             // Handle 16-bit unsigned short, vec4 format
-                            model.meshes[meshIndex].boneIds = RL_CALLOC(model.meshes[meshIndex].vertexCount*4, sizeof(unsigned short));
-                            unsigned short* ptr = (unsigned short*)model.meshes[meshIndex].boneIds;
-                            LOAD_ATTRIBUTE(attribute, 4, unsigned short, ptr)
+                            model.meshes[meshIndex].boneIds = RL_CALLOC(model.meshes[meshIndex].vertexCount*4, sizeof(unsigned char));
+                            unsigned char* ptr = (unsigned char*)model.meshes[meshIndex].boneIds;
+                            bool outsideRange = false;
+                            int n = 0;
+                            unsigned short *buffer =
+                                (unsigned short *)attribute->buffer_view->buffer->data +
+                                attribute->buffer_view->offset / sizeof(unsigned short) +
+                                attribute->offset / sizeof(unsigned short);
+                            for (unsigned int k = 0; k < attribute->count; k++) {
+                                for (int l = 0; l < 4; l++) {
+                                    if (buffer[n + l] > 255) {
+                                        outsideRange = true;
+                                        ptr[4 * k + l] = 255;
+                                    }
+                                    ptr[4 * k + l] = (unsigned char)buffer[n + l];
+                                }
+                                n += (int)(attribute->stride / sizeof(unsigned short));
+                            }
+                            if (outsideRange) {
+                                TRACELOG(LOG_WARNING, "MODEL: [%s] Joint attribute data is outside u8 range", fileName);
+                            }
+
                         }
                         else if ((attribute->component_type == cgltf_component_type_r_32u) && (attribute->type == cgltf_type_vec4))
                         {
