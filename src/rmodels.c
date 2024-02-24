@@ -4830,31 +4830,71 @@ static Image LoadImageFromCgltfImage(cgltf_image *cgltfImage, const char *texPat
     return image;
 }
 
+int compareBonesByDepth(const void *a, const void *b) {
+    const BoneInfo *boneA = (const BoneInfo *)a;
+    const BoneInfo *boneB = (const BoneInfo *)b;
+
+    // Assume BoneInfo structure has an additional 'depth' field
+    return boneA->depth - boneB->depth;
+}
+
 // Load bone info from GLTF skin data
 static BoneInfo *LoadBoneInfoGLTF(cgltf_skin skin, int *boneCount)
 {
     *boneCount = (int)skin.joints_count;
     BoneInfo *bones = RL_MALLOC(skin.joints_count*sizeof(BoneInfo));
 
+    // Temporary array to store depths
+    int *depths = RL_MALLOC(skin.joints_count*sizeof(int));
+    for (unsigned int i = 0; i < skin.joints_count; i++)
+    {
+        depths[i] = -1; // not calculated
+    }
+
     for (unsigned int i = 0; i < skin.joints_count; i++)
     {
         cgltf_node node = *skin.joints[i];
         strncpy(bones[i].name, node.name, sizeof(bones[i].name));
 
-        // Find parent bone index
-        unsigned int parentIndex = -1;
-
-        for (unsigned int j = 0; j < skin.joints_count; j++)
+        int depth = 0;
+        cgltf_node *parent = node.parent;
+        while (parent)
         {
-            if (skin.joints[j] == node.parent)
+            depth++;
+            for (unsigned int j = 0; j < skin.joints_count; j++)
             {
-                parentIndex = j;
-                break;
+                if (parent == skin.joints[j])
+                {
+                    parent = parent->parent;
+                    break;
+                }
             }
         }
 
-        bones[i].parent = parentIndex;
+        depths[i] = depth;
+        bones[i].parent = -1;
     }
+
+    for (unsigned int i = 0; i < skin.joints_count; i++)
+    {
+        bones[i].depth = depths[i];
+        cgltf_node *node = skin.joints[i];
+        if (node->parent)
+        {
+            for (unsigned int j = 0; j < skin.joints_count; j++)
+            {
+                if (node->parent == skin.joints[j])
+                {
+                    bones[i].parent = j;
+                    break;
+                }
+            }
+        }
+    }
+
+    RL_FREE(depths);
+
+    qsort(bones, *boneCount, sizeof(BoneInfo), compareBonesByDepth);
 
     return bones;
 }

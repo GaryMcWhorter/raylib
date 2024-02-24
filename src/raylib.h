@@ -391,6 +391,7 @@ typedef struct Transform {
 typedef struct BoneInfo {
     char name[32];          // Bone name
     int parent;             // Bone parent
+    int depth;
 } BoneInfo;
 
 // Model, meshes, materials and animation data
