@@ -5332,18 +5332,37 @@ static Model LoadGLTF(const char *fileName)
                     {
                         cgltf_accessor *attribute = data->meshes[i].primitives[p].attributes[j].data;
 
-                        if ((attribute->component_type == cgltf_component_type_r_32f) && (attribute->type == cgltf_type_vec4))
+                        if (attribute->type == cgltf_type_vec4)
                         {
-                            // Init raylib mesh bone weight to copy glTF attribute data
-                            model.meshes[meshIndex].boneWeights = RL_CALLOC(model.meshes[meshIndex].vertexCount*4, sizeof(float));
 
-                            // Load 4 components of float data type into mesh.boneWeights
-                            // for cgltf_attribute_type_weights we have:
-                            //   - data.meshes[0] (256 vertices)
-                            //   - 256 values, provided as cgltf_type_vec4 of float (4 byte per joint, stride 16)
-                            LOAD_ATTRIBUTE(attribute, 4, float, model.meshes[meshIndex].boneWeights)
+                            if (attribute->component_type == cgltf_component_type_r_32f) {
+                                model.meshes[meshIndex].boneWeights = RL_CALLOC(model.meshes[meshIndex].vertexCount*4, sizeof(float));
+                                LOAD_ATTRIBUTE(attribute, 4, float, model.meshes[meshIndex].boneWeights)
+                            }
+                            else if (attribute->component_type == cgltf_component_type_r_8u || cgltf_component_type_r_16u)
+                            {
+                                model.meshes[meshIndex].boneWeights = RL_CALLOC(model.meshes[meshIndex].vertexCount*4, sizeof(float));
+                                for (size_t v = 0; v < attribute->count; v++)
+                                {
+                                    float weights[4] = {0};
+                                    for (int k = 0; k < 4; k++)
+                                    {
+                                        unsigned int weight = 0;
+                                        cgltf_accessor_read_uint(attribute, v * 4 + k, &weight, 1);
+                                        weights[k] = (attribute->component_type == cgltf_component_type_r_8u) ? weight / 255.0f : weight / 65535.0f;
+                                    }
+
+                                    memcpy(model.meshes[meshIndex].boneWeights + v * 4, weights, 4 * sizeof(float));
+                                }
+                            }
+                            else
+                            {
+                                TRACELOG(LOG_WARNING, "MODEL: [%s] Joint weight attribute data format not supported, use vec4 float or normalized uint", fileName);
+                                continue;
+                            }
+                            
                         }
-                        else TRACELOG(LOG_WARNING, "MODEL: [%s] Joint weight attribute data format not supported, use vec4 float", fileName);
+                        else TRACELOG(LOG_WARNING, "MODEL: [%s] Joint weight attribute data format not supported, use vec4 float or normalized uint", fileName);
                     }
                 }
 
