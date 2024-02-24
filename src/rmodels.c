@@ -4861,14 +4861,18 @@ static BoneInfo *LoadBoneInfoGLTF(cgltf_skin skin, int *boneCount)
         while (parent)
         {
             depth++;
+            bool foundParent = false;
             for (unsigned int j = 0; j < skin.joints_count; j++)
             {
                 if (parent == skin.joints[j])
                 {
                     parent = parent->parent;
+                    foundParent = true;
                     break;
                 }
             }
+
+            if (!foundParent) break;
         }
 
         depths[i] = depth;
