@@ -4834,8 +4834,9 @@ int compareBonesByDepth(const void *a, const void *b) {
     const BoneInfo *boneA = (const BoneInfo *)a;
     const BoneInfo *boneB = (const BoneInfo *)b;
 
-    // Assume BoneInfo structure has an additional 'depth' field
-    return boneA->depth - boneB->depth;
+    if (boneA->depth < boneB->depth) return -1;
+    if (boneA->depth > boneB->depth) return 1;
+    return 0;
 }
 
 // Load bone info from GLTF skin data
