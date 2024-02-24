@@ -4836,6 +4836,9 @@ int compareBonesByDepth(const void *a, const void *b) {
 
     if (boneA->depth < boneB->depth) return -1;
     if (boneA->depth > boneB->depth) return 1;
+
+    if (boneA->parent < boneB->parent) return -1;
+    if (boneA->parent > boneB->parent) return 1;
     return 0;
 }
 
