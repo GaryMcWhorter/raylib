@@ -5299,21 +5299,15 @@ static Model LoadGLTF(const char *fileName)
                                 attribute->buffer_view->offset / sizeof(unsigned short) +
                                 attribute->offset / sizeof(unsigned short);
                             for (unsigned int k = 0; k < attribute->count; k++) {
-                                // wxyz to xyzw, rearrange the buffer indices accordingly
-                                // New order: 1, 2, 3, 0 (where 0 is 'w' and 1,2,3 are 'xyz')
-                                int order[4] = {1, 2, 3, 0}; // This defines the new order for xyzw
-
                                 for (int l = 0; l < 4; l++) {
-                                    unsigned short value = buffer[n + order[l]]; // Use reordered index for source buffer
-                                    if (value > 255) {
+                                    if (buffer[n + l] > 255) {
                                         outsideRange = true;
                                         ptr[4 * k + l] = 255;
-                                    } else {
-                                        ptr[4 * k + l] = (unsigned char)value;
                                     }
+                                    ptr[4 * k + l] = (unsigned char)buffer[n + l];
                                 }
                                 n += (int)(attribute->stride / sizeof(unsigned short));
-}
+                            }
                             if (outsideRange) {
                                 TRACELOG(LOG_WARNING, "MODEL: [%s] Joint attribute data is outside u8 range", fileName);
                             }
